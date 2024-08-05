@@ -1,0 +1,9 @@
+Seleccione la chica/el chico que desea invitar a una cita.
+
+Lista de perfiles disponibles:
+
+1. Ariana Grande 🔥 (dificultad 5/10)
+2. Margot Robbie 🔥🔥 (dificultad 7/10)
+3. Zendaya 🔥🔥🔥 (dificultad 10/10)
+4. Ryan Gosling 😎 (dificultad 7/10)
+5. Tom Hardy 😎😎 (dificultad 10/10)
