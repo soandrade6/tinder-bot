@@ -4,6 +4,8 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
+import java.util.ArrayList;
+
 public class TinderBoltApp extends SimpleTelegramBot {
 
     public static final String TELEGRAM_BOT_TOKEN = ""; //TODO: añadir el token de Telegram entre comillas
@@ -11,6 +13,7 @@ public class TinderBoltApp extends SimpleTelegramBot {
 
     private ChatGPTService chatGPt = new ChatGPTService(OPEN_AI_TOKEN);
     private DialogMode mode;
+    private ArrayList<String> list = new ArrayList<String>();
 
     public TinderBoltApp() {
         super(TELEGRAM_BOT_TOKEN);
@@ -44,8 +47,69 @@ public class TinderBoltApp extends SimpleTelegramBot {
     public void gptDialog(){
         String text = getMessageText();
         String prompt = loadPrompt("gpt");
+
+        var myMessage = sendTextMessage("gpt is typing...");
         String answer = chatGPt.sendMessage(prompt, text);
-        sendTextMessage(answer);
+        updateTextMessage(myMessage, answer);
+
+    }
+
+    public void dateCommand(){
+        mode = DialogMode.DATE;
+        String text = loadMessage("date");
+        sendPhotoMessage("date");
+        sendTextMessage(text);
+        sendTextButtonsMessage(text,
+                "date_grande", "Ariana Grande",
+                "date_robbie", "Margot Robbie",
+                "date_zendaya", "Zendaya",
+                "date_gosling", "Ryan Gosling",
+                "date_hardy", "Tom Hard");
+    }
+
+    public void dateButton(){
+        String key = getButtonKey();
+        sendPhotoMessage(key);
+        sendHtmlMessage(key);
+        String prompt = loadPrompt(key);
+        chatGPt.setPrompt(prompt);
+    }
+
+    public void dateDialog(){
+        String text = getMessageText();
+
+        var myMessage = sendTextMessage("Typing...");
+        String answer = chatGPt.addMessage(text);
+        //sendTextMessage(answer);
+        updateTextMessage(myMessage, answer);
+    }
+
+    public void messageCommand(){
+        mode = DialogMode.MESSAGE;
+        String text = loadMessage("message");
+        sendPhotoMessage("message");
+        sendTextButtonsMessage(text,
+                "message_next", "Write next message.",
+                "message_date", "Ask the person out on a date."
+                );
+
+        list.clear();
+    }
+
+
+    public void messageButton(){
+        String key = getButtonKey();
+        String prompt = loadPrompt(key);
+        String history = String.join("\n\n", list);
+
+        var myMessage = sendTextMessage("gpt is typing...");
+        String answer = chatGPt.sendMessage(prompt, history);
+        updateTextMessage(myMessage, answer);
+    }
+
+    public void messageDialog(){
+        String text = getMessageText();
+        list.add(text);
 
     }
 
@@ -53,12 +117,15 @@ public class TinderBoltApp extends SimpleTelegramBot {
 
         if(mode == DialogMode.GPT){
             gptDialog();
-        }else {
+        }else if(mode == DialogMode.DATE){
+            dateDialog();
+        }
+        else if(mode == DialogMode.MESSAGE){
+            messageDialog();
+        }
+        else {
             String text = getMessageText();
             sendTextMessage("*Hello from Javaaaa*");
-            sendTextMessage("_What's going on?_");
-            sendTextMessage("You wrote: " + text);
-
             sendPhotoMessage("avatar_main");
             sendTextButtonsMessage("Launch process",
                     "start", "Start",
@@ -84,8 +151,13 @@ public class TinderBoltApp extends SimpleTelegramBot {
         //TODO: y un poco más aquí :)
         addCommandHandler("start", this::startCommand);
         addCommandHandler("gpt", this::gptCommand);
+        addCommandHandler("date", this::dateCommand);
+        addCommandHandler("message", this::messageCommand);
+
         addMessageHandler(this::hello);
-        addButtonHandler("^.*", this::helloButton);
+        //addButtonHandler("^.*", this::helloButton);
+        addButtonHandler("^date_.*", this::dateButton);
+        addButtonHandler("^message_.*", this::dateButton);
     }
 
     public static void main(String[] args) throws TelegramApiException {
