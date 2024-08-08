@@ -96,7 +96,6 @@ public class TinderBoltApp extends SimpleTelegramBot {
         list.clear();
     }
 
-
     public void messageButton(){
         String key = getButtonKey();
         String prompt = loadPrompt(key);
@@ -113,6 +112,85 @@ public class TinderBoltApp extends SimpleTelegramBot {
 
     }
 
+    public void profileCommand(){
+        mode = DialogMode.PROFILE;
+        String text = loadMessage("profile");
+        sendPhotoMessage("profile");
+        sendTextMessage(text);
+
+        sendTextMessage("Enter your name: ");
+        user = new UserInfo();
+        questionCount = 0;
+    }
+
+    private UserInfo user = new UserInfo();
+    private int questionCount = 0;
+
+    public void profileDialog(){
+        String text = getMessageText();
+        questionCount++;
+
+        if (questionCount == 1){
+            user.name = text;
+            sendTextMessage("Enter your age: ");
+        }else if(questionCount==2){
+            user.age = text;
+            sendTextMessage("Mention one hobby: ");
+        }else if(questionCount==3){
+            user.hobby = text;
+            sendTextMessage("Wha are your objetives to interact with this person?: ");
+        }else if(questionCount==4){
+            user.goals = text;
+            String prompt = loadPrompt("profile");
+            String userInfo = user.toString();
+
+            var myMessage = sendTextMessage("gpt is typing...");
+            String answer = chatGPt.sendMessage(prompt, userInfo);
+            updateTextMessage(myMessage, answer);
+
+        }
+
+
+    }
+
+    public void openerCommand(){
+        mode = DialogMode.OPENER;
+        String text = loadMessage("opener");
+        sendPhotoMessage("opener");
+        sendTextMessage(text);
+
+        sendTextMessage("Cual es su nombre");
+        user = new UserInfo();
+        questionCount = 0;
+    }
+
+    public void openerDialog(){
+        String text = getMessageText();
+        questionCount++;
+
+
+        if (questionCount == 1){
+            user.name = text;
+            sendTextMessage("Su edad: ");
+        }else if(questionCount==2){
+            user.age = text;
+            sendTextMessage("Su ocupación: ");
+        }else if(questionCount==3){
+            user.occupation = text;
+            sendTextMessage("Qué tan guapo es del 1 al 10: ");
+        }else if(questionCount==4){
+            user.handsome = text;
+
+            String prompt = loadPrompt("opener");
+            String userInfo = user.toString();
+
+            var myMessage = sendTextMessage("gpt is typing...");
+            String answer = chatGPt.sendMessage(prompt, userInfo);
+            updateTextMessage(myMessage, answer);
+
+        }
+    }
+
     public void hello(){
 
         if(mode == DialogMode.GPT){
@@ -122,17 +200,16 @@ public class TinderBoltApp extends SimpleTelegramBot {
         }
         else if(mode == DialogMode.MESSAGE){
             messageDialog();
+        }else if(mode == DialogMode.PROFILE){
+            profileDialog();
+        }else if(mode == DialogMode.OPENER){
+            openerDialog();
         }
         else {
             String text = getMessageText();
-            sendTextMessage("*Hello from Javaaaa*");
+            sendTextMessage("*Welcome to my tinder bot*");
             sendPhotoMessage("avatar_main");
-            sendTextButtonsMessage("Launch process",
-                    "start", "Start",
-                    "stop", "Stop");
         }
-
-
     }
 
     public void helloButton(){
@@ -153,6 +230,8 @@ public class TinderBoltApp extends SimpleTelegramBot {
         addCommandHandler("gpt", this::gptCommand);
         addCommandHandler("date", this::dateCommand);
         addCommandHandler("message", this::messageCommand);
+        addCommandHandler("profile", this::profileCommand);
+        addCommandHandler("opener", this::openerCommand);
 
         addMessageHandler(this::hello);
         //addButtonHandler("^.*", this::helloButton);
